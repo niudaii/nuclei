@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/projectdiscovery/cryptoutil"
 	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/nuclei/v2/pkg/model"
 	"github.com/projectdiscovery/nuclei/v2/pkg/operators"
@@ -13,7 +14,6 @@ import (
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols/common/contextargs"
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols/common/helpers/writer"
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols/http"
-	cryptoutil "github.com/projectdiscovery/utils/crypto"
 )
 
 // Cluster clusters a list of templates into a lesser number if possible based
@@ -208,7 +208,7 @@ func (e *ClusterExecuter) Execute(input *contextargs.Context) (bool, error) {
 		}
 	})
 	if err != nil && e.options.HostErrorsCache != nil {
-		e.options.HostErrorsCache.MarkFailed(input.MetaInput.Input, err)
+		e.options.HostErrorsCache.MarkFailed(input.Input, err)
 	}
 	return results, err
 }
@@ -230,7 +230,7 @@ func (e *ClusterExecuter) ExecuteWithResults(input *contextargs.Context, callbac
 		}
 	})
 	if err != nil && e.options.HostErrorsCache != nil {
-		e.options.HostErrorsCache.MarkFailed(input.MetaInput.Input, err)
+		e.options.HostErrorsCache.MarkFailed(input.Input, err)
 	}
 	return err
 }

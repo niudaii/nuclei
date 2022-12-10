@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/projectdiscovery/gologger"
+	"github.com/projectdiscovery/iputil"
 	"github.com/projectdiscovery/nuclei/v2/pkg/output"
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols"
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols/common/contextargs"
@@ -20,7 +21,6 @@ import (
 	templateTypes "github.com/projectdiscovery/nuclei/v2/pkg/templates/types"
 	"github.com/projectdiscovery/nuclei/v2/pkg/utils"
 	"github.com/projectdiscovery/retryabledns"
-	iputil "github.com/projectdiscovery/utils/ip"
 )
 
 var _ protocols.Request = &Request{}
@@ -34,10 +34,10 @@ func (request *Request) Type() templateTypes.ProtocolType {
 func (request *Request) ExecuteWithResults(input *contextargs.Context, metadata, previous output.InternalEvent, callback protocols.OutputEventCallback) error {
 	// Parse the URL and return domain if URL.
 	var domain string
-	if utils.IsURL(input.MetaInput.Input) {
-		domain = extractDomain(input.MetaInput.Input)
+	if utils.IsURL(input.Input) {
+		domain = extractDomain(input.Input)
 	} else {
-		domain = input.MetaInput.Input
+		domain = input.Input
 	}
 
 	var err error
@@ -51,7 +51,7 @@ func (request *Request) ExecuteWithResults(input *contextargs.Context, metadata,
 	variablesMap := request.options.Variables.Evaluate(vars)
 	vars = generators.MergeMaps(variablesMap, vars)
 
-	if vardump.EnableVarDump {
+	if request.options.Options.Debug || request.options.Options.DebugRequests {
 		gologger.Debug().Msgf("Protocol request variables: \n%s\n", vardump.DumpVariables(vars))
 	}
 
@@ -87,8 +87,6 @@ func (request *Request) ExecuteWithResults(input *contextargs.Context, metadata,
 		}
 	}
 
-	request.options.RateLimiter.Take()
-
 	// Send the request to the target servers
 	response, err := dnsClient.Do(compiledRequest)
 	if err != nil {
@@ -112,7 +110,7 @@ func (request *Request) ExecuteWithResults(input *contextargs.Context, metadata,
 		}
 	}
 
-	outputEvent := request.responseToDSLMap(compiledRequest, response, input.MetaInput.Input, input.MetaInput.Input, traceData)
+	outputEvent := request.responseToDSLMap(compiledRequest, response, input.Input, input.Input, traceData)
 	for k, v := range previous {
 		outputEvent[k] = v
 	}

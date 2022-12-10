@@ -25,6 +25,45 @@ func TestBaseURLWithTemplatePrefs(t *testing.T) {
 	require.Equal(t, "{{BaseURL}}/newpath", data, "could not get correct data")
 }
 
+func TestVariables(t *testing.T) {
+	baseURL := "http://localhost:9001/test/123"
+	parsed, _ := url.Parse(baseURL)
+	values := GenerateVariables(parsed, true)
+
+	require.Equal(t, values["BaseURL"], parsed.String(), "incorrect baseurl")
+	require.Equal(t, values["RootURL"], "http://localhost:9001", "incorrect rootURL")
+	require.Equal(t, values["Host"], "localhost", "incorrect domain name")
+	require.Equal(t, values["Path"], "/test", "incorrect path")
+	require.Equal(t, values["File"], "123", "incorrect file")
+	require.Equal(t, values["Port"], "9001", "incorrect port number")
+	require.Equal(t, values["Scheme"], "http", "incorrect scheme")
+	require.Equal(t, values["Hostname"], "localhost:9001", "incorrect hostname")
+
+	baseURL = "https://example.com"
+	parsed, _ = url.Parse(baseURL)
+	values = GenerateVariables(parsed, false)
+
+	require.Equal(t, values["BaseURL"], parsed.String(), "incorrect baseurl")
+	require.Equal(t, values["Host"], "example.com", "incorrect domain name")
+	require.Equal(t, values["RootURL"], "https://example.com", "incorrect rootURL")
+	require.Equal(t, values["Path"], "", "incorrect path")
+	require.Equal(t, values["Port"], "443", "incorrect port number")
+	require.Equal(t, values["Scheme"], "https", "incorrect scheme")
+	require.Equal(t, values["Hostname"], "example.com", "incorrect hostname")
+
+	baseURL = "ftp://foobar.com/"
+	parsed, _ = url.Parse(baseURL)
+	values = GenerateVariables(parsed, true)
+
+	require.Equal(t, values["BaseURL"], parsed.String(), "incorrect baseurl")
+	require.Equal(t, values["Host"], "foobar.com", "incorrect domain name")
+	require.Equal(t, values["RootURL"], "ftp://foobar.com", "incorrect rootURL")
+	require.Equal(t, values["Path"], "", "incorrect path")
+	require.Equal(t, values["Port"], "", "incorrect port number") // Unsupported protocol results in a blank port
+	require.Equal(t, values["Scheme"], "ftp", "incorrect scheme")
+	require.Equal(t, values["Hostname"], "foobar.com", "incorrect hostname")
+}
+
 func TestMakeRequestFromModal(t *testing.T) {
 	options := testutils.DefaultOptions
 
@@ -48,7 +87,7 @@ func TestMakeRequestFromModal(t *testing.T) {
 	err := request.Compile(executerOpts)
 	require.Nil(t, err, "could not compile http request")
 
-	generator := request.newGenerator(false)
+	generator := request.newGenerator()
 	inputData, payloads, _ := generator.nextValue()
 	req, err := generator.Make(context.Background(), "https://example.com", inputData, payloads, map[string]interface{}{})
 	require.Nil(t, err, "could not make http request")
@@ -76,13 +115,13 @@ func TestMakeRequestFromModalTrimSuffixSlash(t *testing.T) {
 	err := request.Compile(executerOpts)
 	require.Nil(t, err, "could not compile http request")
 
-	generator := request.newGenerator(false)
+	generator := request.newGenerator()
 	inputData, payloads, _ := generator.nextValue()
 	req, err := generator.Make(context.Background(), "https://example.com/test.php", inputData, payloads, map[string]interface{}{})
 	require.Nil(t, err, "could not make http request")
 	require.Equal(t, "https://example.com/test.php?query=example", req.request.URL.String(), "could not get correct request path")
 
-	generator = request.newGenerator(false)
+	generator = request.newGenerator()
 	inputData, payloads, _ = generator.nextValue()
 	req, err = generator.Make(context.Background(), "https://example.com/test/", inputData, payloads, map[string]interface{}{})
 	require.Nil(t, err, "could not make http request")
@@ -116,7 +155,7 @@ Accept-Encoding: gzip`},
 	err := request.Compile(executerOpts)
 	require.Nil(t, err, "could not compile http request")
 
-	generator := request.newGenerator(false)
+	generator := request.newGenerator()
 	inputData, payloads, _ := generator.nextValue()
 	req, err := generator.Make(context.Background(), "https://example.com", inputData, payloads, map[string]interface{}{})
 	require.Nil(t, err, "could not make http request")
@@ -157,7 +196,7 @@ Accept-Encoding: gzip`},
 	err := request.Compile(executerOpts)
 	require.Nil(t, err, "could not compile http request")
 
-	generator := request.newGenerator(false)
+	generator := request.newGenerator()
 	inputData, payloads, _ := generator.nextValue()
 	req, err := generator.Make(context.Background(), "https://example.com", inputData, payloads, map[string]interface{}{})
 	require.Nil(t, err, "could not make http request")
@@ -190,7 +229,7 @@ func TestMakeRequestFromModelUniqueInteractsh(t *testing.T) {
 	err := request.Compile(executerOpts)
 	require.Nil(t, err, "could not compile http request")
 
-	generator := request.newGenerator(false)
+	generator := request.newGenerator()
 
 	generator.options.Interactsh, err = interactsh.New(&interactsh.Options{
 		ServerURL:           options.InteractshURL,

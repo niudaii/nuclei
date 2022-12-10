@@ -5,7 +5,7 @@ import (
 	"net"
 
 	"github.com/pkg/errors"
-	iputil "github.com/projectdiscovery/utils/ip"
+	"github.com/projectdiscovery/iputil"
 )
 
 const (

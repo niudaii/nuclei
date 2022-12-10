@@ -1,6 +1,6 @@
 package generators
 
-import stringsutil "github.com/projectdiscovery/utils/strings"
+import "github.com/projectdiscovery/stringsutil"
 
 // SliceToMap converts a slice of strings to map of string splitting each item at sep as "key sep value"
 func SliceToMap(s []string, sep string) map[string]interface{} {

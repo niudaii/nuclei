@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/projectdiscovery/ratelimit"
+	"github.com/projectdiscovery/nuclei/v2/pkg/utils/ratelimit"
 
 	"github.com/logrusorgru/aurora"
 
@@ -61,13 +61,11 @@ var DefaultOptions = &types.Options{
 	Templates:                  []string{},
 	ExcludedTemplates:          []string{},
 	CustomHeaders:              []string{},
-	InteractshURL:              "https://oast.fun",
+	InteractshURL:              "https://oast.me",
 	InteractionsCacheSize:      5000,
 	InteractionsEviction:       60,
 	InteractionsCoolDownPeriod: 5,
 	InteractionsPollDuration:   5,
-	GithubTemplateRepo:         []string{},
-	GithubToken:                "",
 }
 
 // TemplateInfo contains info for a mock executed template.
@@ -91,7 +89,7 @@ func NewMockExecuterOptions(options *types.Options, info *TemplateInfo) *protoco
 		IssuesClient: nil,
 		Browser:      nil,
 		Catalog:      disk.NewCatalog(options.TemplatesDirectory),
-		RateLimiter:  ratelimit.New(context.Background(), uint(options.RateLimit), time.Second),
+		RateLimiter:  ratelimit.New(context.Background(), int64(options.RateLimit), time.Second),
 	}
 	return executerOpts
 }

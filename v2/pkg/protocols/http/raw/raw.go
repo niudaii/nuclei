@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/projectdiscovery/rawhttp/client"
-	stringsutil "github.com/projectdiscovery/utils/strings"
+	"github.com/projectdiscovery/stringsutil"
 )
 
 // Request defines a basic HTTP raw request
@@ -59,7 +59,7 @@ read_line:
 	}
 	// Check if we have also a path from the passed base URL and if yes,
 	// append that to the unsafe request as well.
-	if parsedURL.Path != "" && parts[1] != "" && parts[1] != parsedURL.Path {
+	if parsedURL.Path != "" && strings.HasPrefix(parts[1], "/") && parts[1] != parsedURL.Path {
 		rawRequest.UnsafeRawBytes = fixUnsafeRequestPath(parsedURL, parts[1], rawRequest.UnsafeRawBytes)
 	}
 	// Set the request Method
@@ -157,14 +157,9 @@ read_line:
 }
 
 func fixUnsafeRequestPath(baseURL *url.URL, requestPath string, request []byte) []byte {
-	var fixedPath string
-	if stringsutil.HasPrefixAny(requestPath, "/") {
-		fixedPath = path.Join(baseURL.Path, requestPath)
-	} else {
-		fixedPath = fmt.Sprintf("%s%s", baseURL.Path, requestPath)
-	}
-
-	return bytes.Replace(request, []byte(requestPath), []byte(fixedPath), 1)
+	fixedPath := path.Join(baseURL.Path, requestPath)
+	fixed := bytes.Replace(request, []byte(requestPath), []byte(fixedPath), 1)
+	return fixed
 }
 
 // TryFillCustomHeaders after the Host header

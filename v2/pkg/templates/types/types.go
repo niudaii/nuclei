@@ -24,7 +24,6 @@ const (
 	FileProtocol
 	// name:http
 	HTTPProtocol
-	OfflineHTTPProtocol
 	// name:headless
 	HeadlessProtocol
 	// name:network

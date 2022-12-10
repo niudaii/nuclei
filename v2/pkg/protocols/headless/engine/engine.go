@@ -12,9 +12,9 @@ import (
 	"github.com/pkg/errors"
 	ps "github.com/shirou/gopsutil/v3/process"
 
+	"github.com/projectdiscovery/fileutil"
 	"github.com/projectdiscovery/nuclei/v2/pkg/types"
-	fileutil "github.com/projectdiscovery/utils/file"
-	stringsutil "github.com/projectdiscovery/utils/strings"
+	"github.com/projectdiscovery/stringsutil"
 )
 
 // Browser is a browser structure for nuclei headless module

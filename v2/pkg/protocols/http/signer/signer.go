@@ -1,30 +1,36 @@
 package signer
 
 import (
-	"context"
 	"errors"
 	"net/http"
 )
 
-// An Argument that can be passed to Signer
-type SignerArg string
-
 type Signer interface {
-	SignHTTP(ctx context.Context, request *http.Request) error
+	SignHTTP(request *http.Request, args interface{}) error
+	CalculateHTTPHeaders(request *http.Request, args interface{}) (map[string]string, error)
 }
 
 type SignerArgs interface {
 	Validate() error
 }
 
+type SignatureArguments interface {
+	Validate() error
+}
+
 func NewSigner(args SignerArgs) (signer Signer, err error) {
 	switch signerArgs := args.(type) {
-	case *AWSOptions:
+	case AwsSignerArgs:
 		awsSigner, err := NewAwsSigner(signerArgs)
 		if err != nil {
-			awsSigner, err = NewAwsSignerFromConfig(signerArgs)
+			// $HOME/.aws/credentials
+			awsSigner, err = NewAwsSignerFromFile()
 			if err != nil {
-				return nil, err
+				// env variables
+				awsSigner, err = NewAwsSignerFromEnv()
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 		return awsSigner, err

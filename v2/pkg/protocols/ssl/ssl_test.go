@@ -28,7 +28,8 @@ func TestSSLProtocol(t *testing.T) {
 	require.Nil(t, err, "could not compile ssl request")
 
 	var gotEvent output.InternalEvent
-	ctxArgs := contextargs.NewWithInput("google.com:443")
+	ctxArgs := contextargs.New()
+	ctxArgs.Input = "google.com:443"
 	err = request.ExecuteWithResults(ctxArgs, nil, nil, func(event *output.InternalWrappedEvent) {
 		gotEvent = event.InternalEvent
 	})

@@ -14,6 +14,7 @@ import (
 	"github.com/projectdiscovery/nuclei/v2/pkg/types"
 )
 
+
 // Summary returns a formatted built one line summary of the event
 func Summary(event *output.ResultEvent) string {
 	template := GetMatchedTemplate(event)
@@ -178,7 +179,7 @@ func ToMarkdownTableString(templateInfo *model.Info) string {
 		insertionOrderedStringMap.ForEach(func(key string, value interface{}) {
 			switch value := value.(type) {
 			case string:
-				if !utils.IsBlank(value) {
+				if utils.IsNotBlank(value) {
 					builder.WriteString(fmt.Sprintf("| %s | %s |\n", key, value))
 				}
 			}

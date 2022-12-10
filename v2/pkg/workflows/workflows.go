@@ -6,7 +6,6 @@ import (
 	"github.com/projectdiscovery/nuclei/v2/pkg/model/types/stringslice"
 	"github.com/projectdiscovery/nuclei/v2/pkg/operators"
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols"
-	templateTypes "github.com/projectdiscovery/nuclei/v2/pkg/templates/types"
 )
 
 // Workflow is a workflow to execute with chained requests, etc.
@@ -43,9 +42,8 @@ type WorkflowTemplate struct {
 
 // ProtocolExecuterPair is a pair of protocol executer and its options
 type ProtocolExecuterPair struct {
-	Executer     protocols.Executer
-	Options      *protocols.ExecuterOptions
-	TemplateType templateTypes.ProtocolType
+	Executer protocols.Executer
+	Options  *protocols.ExecuterOptions
 }
 
 // Matcher performs conditional matching on the workflow template results.
@@ -105,8 +103,8 @@ func (matcher *Matcher) Match(result *operators.Result) bool {
 	}
 
 	for i, name := range names {
-		matchOK := result.HasMatch(name)
-		extractOK := result.HasExtract(name)
+		_, matchOK := result.Matches[name]
+		_, extractOK := result.Extracts[name]
 
 		if !matchOK && !extractOK {
 			if matcher.condition == ANDCondition {

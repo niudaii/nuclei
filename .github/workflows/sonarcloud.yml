@@ -1,9 +1,11 @@
 name: 👮🏼‍♂️ Sonarcloud
-
 on:
+  push:
+    branches:
+      - master
+      - dev
   pull_request:
-    paths:
-      - '**.go'
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 jobs:

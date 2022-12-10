@@ -9,9 +9,8 @@ import (
 
 // Context implements a shared context struct to share information across multiple templates within a workflow
 type Context struct {
-	// Meta is the target for the executor
-	MetaInput *MetaInput
-
+	// Input target for the executor
+	Input string
 	// CookieJar shared within workflow's http templates
 	CookieJar *cookiejar.Jar
 
@@ -23,12 +22,12 @@ type Context struct {
 
 // Create a new contextargs instance
 func New() *Context {
-	return &Context{MetaInput: &MetaInput{}}
+	return &Context{}
 }
 
 // Create a new contextargs instance with input string
 func NewWithInput(input string) *Context {
-	return &Context{MetaInput: &MetaInput{Input: input}}
+	return &Context{Input: input}
 }
 
 func (ctx *Context) initialize() {
@@ -107,14 +106,4 @@ func (ctx *Context) Has(key string) bool {
 
 func (ctx *Context) HasArgs() bool {
 	return ctx.hasArgs()
-}
-
-func (ctx *Context) Clone() *Context {
-	newCtx := &Context{
-		MetaInput: ctx.MetaInput.Clone(),
-		RWMutex:   ctx.RWMutex,
-		args:      ctx.args,
-		CookieJar: ctx.CookieJar,
-	}
-	return newCtx
 }

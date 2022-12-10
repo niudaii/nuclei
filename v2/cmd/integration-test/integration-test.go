@@ -62,7 +62,7 @@ func runTests(customTemplatePaths map[string]struct{}) map[string]struct{} {
 
 		for templatePath, testCase := range testCases {
 			if len(customTemplatePaths) == 0 || contains(customTemplatePaths, templatePath) {
-				if failedTemplatePath, err := execute(testCase, templatePath); err != nil {
+				if err, failedTemplatePath := execute(testCase, templatePath); err != nil {
 					failedTestTemplatePaths[failedTemplatePath] = struct{}{}
 				}
 			}
@@ -72,14 +72,14 @@ func runTests(customTemplatePaths map[string]struct{}) map[string]struct{} {
 	return failedTestTemplatePaths
 }
 
-func execute(testCase testutils.TestCase, templatePath string) (string, error) {
+func execute(testCase testutils.TestCase, templatePath string) (error, string) {
 	if err := testCase.Execute(templatePath); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%s Test \"%s\" failed: %s\n", failed, templatePath, err)
-		return templatePath, err
+		return err, templatePath
 	}
 
 	fmt.Printf("%s Test \"%s\" passed!\n", success, templatePath)
-	return "", nil
+	return nil, ""
 }
 
 func expectResultsCount(results []string, expectedNumber int) error {

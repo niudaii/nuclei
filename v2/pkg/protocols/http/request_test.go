@@ -82,7 +82,8 @@ Disallow: /c`))
 	t.Run("test", func(t *testing.T) {
 		metadata := make(output.InternalEvent)
 		previous := make(output.InternalEvent)
-		ctxArgs := contextargs.NewWithInput(ts.URL)
+		ctxArgs := contextargs.New()
+		ctxArgs.Input = ts.URL
 		err := request.ExecuteWithResults(ctxArgs, metadata, previous, func(event *output.InternalWrappedEvent) {
 			if event.OperatorsResult != nil && event.OperatorsResult.Matched {
 				matchCount++

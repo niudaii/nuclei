@@ -43,8 +43,6 @@ func (e *Engine) ExecuteWithOpts(templatesList []*templates.Template, target Inp
 
 		wg.Add()
 		go func(tpl *templates.Template) {
-			defer wg.Done()
-
 			switch {
 			case tpl.SelfContained:
 				// Self Contained requests are executed here separately
@@ -53,6 +51,7 @@ func (e *Engine) ExecuteWithOpts(templatesList []*templates.Template, target Inp
 				// All other request types are executed here
 				e.executeModelWithInput(templateType, tpl, target, results)
 			}
+			wg.Done()
 		}(template)
 	}
 	e.workPool.Wait()
@@ -99,7 +98,7 @@ func (e *Engine) executeModelWithInput(templateType types.ProtocolType, template
 		currentInfo.Unlock()
 	}
 
-	target.Scan(func(scannedValue *contextargs.MetaInput) bool {
+	target.Scan(func(scannedValue string) {
 		// Best effort to track the host progression
 		// skips indexes lower than the minimum in-flight at interruption time
 		var skip bool
@@ -123,12 +122,12 @@ func (e *Engine) executeModelWithInput(templateType types.ProtocolType, template
 		currentInfo.Unlock()
 
 		// Skip if the host has had errors
-		if e.executerOpts.HostErrorsCache != nil && e.executerOpts.HostErrorsCache.Check(scannedValue.ID()) {
-			return true
+		if e.executerOpts.HostErrorsCache != nil && e.executerOpts.HostErrorsCache.Check(scannedValue) {
+			return
 		}
 
 		wg.WaitGroup.Add()
-		go func(index uint32, skip bool, value *contextargs.MetaInput) {
+		go func(index uint32, skip bool, value string) {
 			defer wg.WaitGroup.Done()
 			defer cleanupInFlight(index)
 			if skip {
@@ -142,7 +141,7 @@ func (e *Engine) executeModelWithInput(templateType types.ProtocolType, template
 				match = e.executeWorkflow(value, template.CompiledWorkflow)
 			default:
 				ctxArgs := contextargs.New()
-				ctxArgs.MetaInput = value
+				ctxArgs.Input = value
 				match, err = template.Executer.Execute(ctxArgs)
 			}
 			if err != nil {
@@ -152,7 +151,6 @@ func (e *Engine) executeModelWithInput(templateType types.ProtocolType, template
 		}(index, skip, scannedValue)
 
 		index++
-		return true
 	})
 	wg.WaitGroup.Wait()
 
@@ -189,14 +187,14 @@ func (e *Engine) ExecuteWithResults(templatesList []*templates.Template, target 
 func (e *Engine) executeModelWithInputAndResult(templateType types.ProtocolType, template *templates.Template, target InputProvider, results *atomic.Bool, callback func(*output.ResultEvent)) {
 	wg := e.workPool.InputPool(templateType)
 
-	target.Scan(func(scannedValue *contextargs.MetaInput) bool {
+	target.Scan(func(scannedValue string) {
 		// Skip if the host has had errors
-		if e.executerOpts.HostErrorsCache != nil && e.executerOpts.HostErrorsCache.Check(scannedValue.ID()) {
-			return true
+		if e.executerOpts.HostErrorsCache != nil && e.executerOpts.HostErrorsCache.Check(scannedValue) {
+			return
 		}
 
 		wg.WaitGroup.Add()
-		go func(value *contextargs.MetaInput) {
+		go func(value string) {
 			defer wg.WaitGroup.Done()
 
 			var match bool
@@ -206,7 +204,7 @@ func (e *Engine) executeModelWithInputAndResult(templateType types.ProtocolType,
 				match = e.executeWorkflow(value, template.CompiledWorkflow)
 			default:
 				ctxArgs := contextargs.New()
-				ctxArgs.MetaInput = value
+				ctxArgs.Input = value
 				err = template.Executer.ExecuteWithResults(ctxArgs, func(event *output.InternalWrappedEvent) {
 					for _, result := range event.Results {
 						callback(result)
@@ -218,7 +216,6 @@ func (e *Engine) executeModelWithInputAndResult(templateType types.ProtocolType,
 			}
 			results.CompareAndSwap(false, match)
 		}(scannedValue)
-		return true
 	})
 	wg.WaitGroup.Wait()
 }
@@ -236,7 +233,7 @@ func (e *ChildExecuter) Close() *atomic.Bool {
 }
 
 // Execute executes a template and URLs
-func (e *ChildExecuter) Execute(template *templates.Template, value *contextargs.MetaInput) {
+func (e *ChildExecuter) Execute(template *templates.Template, URL string) {
 	templateType := template.Type()
 
 	var wg *sizedwaitgroup.SizedWaitGroup
@@ -248,15 +245,14 @@ func (e *ChildExecuter) Execute(template *templates.Template, value *contextargs
 
 	wg.Add()
 	go func(tpl *templates.Template) {
-		defer wg.Done()
-
 		ctxArgs := contextargs.New()
-		ctxArgs.MetaInput = value
+		ctxArgs.Input = URL
 		match, err := template.Executer.Execute(ctxArgs)
 		if err != nil {
 			gologger.Warning().Msgf("[%s] Could not execute step: %s\n", e.e.executerOpts.Colorizer.BrightBlue(template.ID), err)
 		}
 		e.results.CompareAndSwap(false, match)
+		wg.Done()
 	}(template)
 }
 

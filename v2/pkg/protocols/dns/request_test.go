@@ -54,7 +54,8 @@ func TestDNSExecuteWithResults(t *testing.T) {
 	t.Run("domain-valid", func(t *testing.T) {
 		metadata := make(output.InternalEvent)
 		previous := make(output.InternalEvent)
-		ctxArgs := contextargs.NewWithInput("example.com")
+		ctxArgs := contextargs.New()
+		ctxArgs.Input = "example.com"
 		err := request.ExecuteWithResults(ctxArgs, metadata, previous, func(event *output.InternalWrappedEvent) {
 			finalEvent = event
 		})
