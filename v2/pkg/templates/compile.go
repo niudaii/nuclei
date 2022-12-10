@@ -31,9 +31,9 @@ func init() {
 //
 //nolint:gocritic // this cannot be passed by pointer
 func Parse(filePath string, preprocessor Preprocessor, options protocols.ExecuterOptions) (*Template, error) {
-	if value, err := parsedTemplatesCache.Has(filePath); value != nil {
-		return value.(*Template), err
-	}
+	//if value, err := parsedTemplatesCache.Has(filePath); value != nil {
+	//	return value.(*Template), err
+	//}
 
 	template := &Template{}
 

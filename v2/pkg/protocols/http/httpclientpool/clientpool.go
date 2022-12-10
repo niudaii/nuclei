@@ -38,9 +38,9 @@ var (
 // Init initializes the clientpool implementation
 func Init(options *types.Options) error {
 	// Don't create clients if already created in the past.
-	if normalClient != nil {
-		return nil
-	}
+	//if normalClient != nil {
+	//	return nil
+	//}
 	if options.ShouldFollowHTTPRedirects() {
 		forceMaxRedirects = options.MaxRedirects
 	}
@@ -105,18 +105,28 @@ func (c *Configuration) HasStandardOptions() bool {
 
 // GetRawHTTP returns the rawhttp request client
 func GetRawHTTP(options *types.Options) *rawhttp.Client {
-	if rawHttpClient == nil {
-		rawHttpOptions := rawhttp.DefaultOptions
-		if types.ProxyURL != "" {
-			rawHttpOptions.Proxy = types.ProxyURL
-		} else if types.ProxySocksURL != "" {
-			rawHttpOptions.Proxy = types.ProxySocksURL
-		} else if Dialer != nil {
-			rawHttpOptions.FastDialer = Dialer
-		}
-		rawHttpOptions.Timeout = time.Duration(options.Timeout) * time.Second
-		rawHttpClient = rawhttp.NewClient(rawHttpOptions)
+	//if rawHttpClient == nil {
+	//	rawHttpOptions := rawhttp.DefaultOptions
+	//	if types.ProxyURL != "" {
+	//		rawHttpOptions.Proxy = types.ProxyURL
+	//	} else if types.ProxySocksURL != "" {
+	//		rawHttpOptions.Proxy = types.ProxySocksURL
+	//	} else if Dialer != nil {
+	//		rawHttpOptions.FastDialer = Dialer
+	//	}
+	//	rawHttpOptions.Timeout = time.Duration(options.Timeout) * time.Second
+	//	rawHttpClient = rawhttp.NewClient(rawHttpOptions)
+	//}
+	rawHttpOptions := rawhttp.DefaultOptions
+	if types.ProxyURL != "" {
+		rawHttpOptions.Proxy = types.ProxyURL
+	} else if types.ProxySocksURL != "" {
+		rawHttpOptions.Proxy = types.ProxySocksURL
+	} else if Dialer != nil {
+		rawHttpOptions.FastDialer = Dialer
 	}
+	rawHttpOptions.Timeout = time.Duration(options.Timeout) * time.Second
+	rawHttpClient = rawhttp.NewClient(rawHttpOptions)
 	return rawHttpClient
 }
 
