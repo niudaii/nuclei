@@ -99,7 +99,7 @@ func Parse(filePath string, preprocessor Preprocessor, options protocols.Execute
 
 	template.parseSelfContainedRequests()
 
-	parsedTemplatesCache.Store(filePath, template, err)
+	//parsedTemplatesCache.Store(filePath, template, err)
 	return template, nil
 }
 
